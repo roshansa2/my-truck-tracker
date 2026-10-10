@@ -6,7 +6,7 @@
    Storage: add "Upstash Redis" from the Vercel Marketplace/Storage tab and connect it to this project;
    it sets KV_REST_API_URL / KV_REST_API_TOKEN (or UPSTASH_REDIS_REST_URL / _TOKEN) automatically. */
 const crypto = require('crypto');
-const ADMIN_PASS = process.env.ADMIN_PASS || '';
+const ADMIN_PASS = (process.env.ADMIN_PASS || '').trim();
 const ROUTES_KEY = process.env.ROUTES_KEY || '';
 const TL = +(process.env.TL || 120);
 const RURL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
@@ -110,12 +110,13 @@ function cleanPts(a) {
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   try {
+    if (req.method === 'POST' && !ADMIN_PASS) fail('ADMIN_PASS is not set in Vercel environment variables (add it, then Redeploy)', 500);
     if (!RURL || !RTOK) fail('Storage not connected: add Upstash Redis to this project in Vercel (Storage tab) and redeploy', 500);
     const d = await load(), now = Date.now() / 1000;
     if (req.method === 'GET') return res.status(200).json(clientView(d, now));
     if (req.method !== 'POST') fail('Method not allowed', 405);
     if (!ADMIN_PASS) fail('ADMIN_PASS is not set in Vercel environment variables', 500);
-    if (!safeEq(ADMIN_PASS, String(req.headers['x-admin-pass'] || ''))) fail('Wrong admin password', 401);
+    if (!safeEq(ADMIN_PASS, String(req.headers['x-admin-pass'] || '').trim())) fail('Wrong admin password', 401);
     const inp = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const a = inp.action || 'list', ix = id => d.trips.findIndex(t => t.id === id);
     if (a === 'truck') {
