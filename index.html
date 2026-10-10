@@ -160,14 +160,14 @@ function renderC(){
 /* ---------- Admin panel ---------- */
 async function api(body){
   const r=await fetch(CFG.API,{method:'POST',headers:{'Content-Type':'application/json','X-Admin-Pass':pass},body:JSON.stringify(body)});
-  const j=await r.json().catch(()=>({error:'Server error (is api.php running?)'}));
+  const j=await r.json().catch(()=>({error:'Server error: /api did not return data. Check that the api folder (api/index.js) was deployed, then look at Vercel > Deployments > Logs.'}));
   if(!r.ok)throw new Error(j.error||'Request failed');return j;
 }
 async function act(body,errEl){try{A=await api(body);sig='';renderA();return true}catch(e){if(errEl)errEl.textContent=e.message;else alert(e.message);return false}}
 function showAdmin(ok){$('#login').classList.toggle('hide',ok);$('#adm').classList.toggle('hide',!ok)}
 async function pollA(){
   if(tab!=='a'||!pass)return;
-  try{A=await api({action:'list'});showAdmin(true);renderA()}catch(e){showAdmin(false);if(/password/i.test(e.message))$('#lerr').textContent=e.message}
+  try{A=await api({action:'list'});showAdmin(true);renderA()}catch(e){showAdmin(false);$('#lerr').textContent=e.message;if(/Wrong admin password/.test(e.message)){pass='';sessionStorage.removeItem('mtt')}}
 }
 function ll(v){const m=String(v).trim().match(/^(-?\d+(?:\.\d+)?)[\s,]+(-?\d+(?:\.\d+)?)$/);if(!m)return null;const a=+m[1],b=+m[2];return Math.abs(a)<=90&&Math.abs(b)<=180?{lat:a,lng:b}:null}
 const tripHTML=t=>{const tr=A.trucks.find(x=>x.id===t.truckId)||{};return `<div class="ti ${t.id===sel.a?'on':''}" data-id="${t.id}">
@@ -225,7 +225,7 @@ $('#addTrip').onclick=async()=>{
   if(await act({action:'trip',truckId:$('#trTruck').value,name:$('#trName').value,points:pts},e)){['#trName','#sName','#sLL','#eName','#eLL'].forEach(i=>$(i).value='');$('#wpBox').innerHTML=''}
   b.textContent='Create trip & calculate route';
 };
-$('#loginBtn').onclick=()=>{pass=$('#pw').value;$('#lerr').textContent='';sessionStorage.setItem('mtt',pass);pollA()};
+$('#loginBtn').onclick=()=>{pass=$('#pw').value.trim();$('#lerr').textContent='';sessionStorage.setItem('mtt',pass);pollA()};
 $('#pw').onkeydown=e=>{if(e.key==='Enter')$('#loginBtn').click()};
 
 /* ---------- tabs & polling ---------- */
