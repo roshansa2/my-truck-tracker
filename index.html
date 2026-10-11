@@ -4,13 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>My truck tracker</title>
+<link rel="icon" type="image/png" href="/truck.png">
 <style>
 :root{--bg:#f6f8fb;--card:#fff;--ink:#14213d;--mut:#667085;--line:#e3e6ec;--acc:#f59e0b;--accink:#1b1300;--ok:#16a34a;--bad:#dc2626;--blue:#2563eb;color-scheme:light}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 header{display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between;padding:14px 20px;background:var(--card);border-bottom:1px solid var(--line)}
 .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
-.logo i{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:var(--acc);font-style:normal}
+.logo img{height:40px;width:auto;display:block}
 .tabs{display:flex;gap:4px;background:var(--bg);padding:4px;border-radius:10px}
 .tabs button{border:0;background:none;color:var(--mut);padding:7px 14px;border-radius:7px;font-weight:600;cursor:pointer}
 .tabs button.on{background:var(--acc);color:var(--accink)}
@@ -64,7 +65,7 @@ details{margin-top:8px}summary{cursor:pointer;font-weight:600}
 </head>
 <body>
 <header>
-  <div class="logo"><i>🚚</i> My truck tracker</div>
+  <div class="logo"><img src="/truck.png" alt="" width="48" height="40"> My truck tracker</div>
   <div class="tabs"><button id="tabC" class="on">Client view</button><button id="tabA">Admin panel</button></div>
 </header>
 <div id="gmerr" class="warn hide"></div>
@@ -113,7 +114,7 @@ details{margin-top:8px}summary{cursor:pointer;font-weight:600}
 
 <script>
 /* ===== SETTINGS ===== */
-const CFG={MAPS_KEY:'AIzaSyBUQm2FUBK1LXMdjROsc5NHCjRD9trXoj8',API:'/api'};
+const CFG={MAPS_KEY:'YOUR_GOOGLE_MAPS_BROWSER_KEY',API:'/api'};
 /* ==================== */
 const $=s=>document.querySelector(s),qa=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -131,6 +132,7 @@ window.__gm=()=>{gOK=true;renderC();renderA()};
 if(CFG.MAPS_KEY.startsWith('YOUR'))gmErr('Add your Google Maps browser key in index.html (CFG.MAPS_KEY) to show the map.');
 else{const s=document.createElement('script');s.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(CFG.MAPS_KEY)+'&callback=__gm&v=weekly';s.async=true;document.head.appendChild(s)}
 
+const truckIcon=()=>({url:'/truck.png',scaledSize:new google.maps.Size(60,50),anchor:new google.maps.Point(30,25)});
 function draw(id,o){
   if(!gOK||!document.getElementById(id).offsetWidth)return;
   const M=maps[id]||(maps[id]={ov:[],key:null,m:new google.maps.Map(document.getElementById(id),{mapTypeControl:false,streetViewControl:false,center:{lat:21,lng:84},zoom:6})});
@@ -140,7 +142,8 @@ function draw(id,o){
   M.ov.push(new g.Polyline({map:M.m,path:P(o.path),strokeColor:'#2563eb',strokeWeight:5}));
   o.points.forEach(p=>M.ov.push(new g.Marker({map:M.m,position:{lat:+p.lat,lng:+p.lng},title:p.n+' ('+LBL[p.type]+')',icon:{path:g.SymbolPath.CIRCLE,scale:8,fillColor:COL[p.type],fillOpacity:1,strokeColor:'#fff',strokeWeight:2}})));
   const pos={lat:o.pos[0],lng:o.pos[1]};
-  M.ov.push(new g.Marker({map:M.m,position:pos,zIndex:99,title:'Truck',label:{text:'🚚',fontSize:'14px'},icon:{path:g.SymbolPath.CIRCLE,scale:15,fillColor:'#f59e0b',fillOpacity:1,strokeColor:'#14213d',strokeWeight:3}}));
+  M.ov.push(new g.Marker({map:M.m,position:pos,zIndex:98,clickable:false,icon:{path:g.SymbolPath.CIRCLE,scale:24,fillColor:'#f59e0b',fillOpacity:.25,strokeColor:'#f59e0b',strokeOpacity:.7,strokeWeight:2}}));
+  M.ov.push(new g.Marker({map:M.m,position:pos,zIndex:99,title:'Truck',icon:truckIcon()}));
   if(M.key!==o.key){
     const b=new g.LatLngBounds();(o.full||o.path).forEach(p=>b.extend({lat:p[0],lng:p[1]}));b.extend(pos);
     if(b.getNorthEast().equals(b.getSouthWest())){M.m.setCenter(pos);M.m.setZoom(12)}else M.m.fitBounds(b,40);
@@ -154,7 +157,7 @@ let R=null;
 const hv=(a,b)=>{const r=x=>x*Math.PI/180,h=Math.sin(r(b[0]-a[0])/2)**2+Math.cos(r(a[0]))*Math.cos(r(b[0]))*Math.sin(r(b[1]-a[1])/2)**2;return 12742000*Math.asin(Math.sqrt(h))};
 function closeReplay(refit){if(!R)return;cancelAnimationFrame(R.raf);R.ov.forEach(x=>x.setMap(null));R=null;$('#rbar').classList.add('hide');if(refit&&maps.mapC)maps.mapC.key=null}
 function repAt(f){const d=f*R.tot;let i=1;while(i<R.cum.length-1&&R.cum[i]<d)i++;const a=R.pts[i-1],b=R.pts[i],seg=R.cum[i]-R.cum[i-1],u=seg>0?Math.min(1,(d-R.cum[i-1])/seg):0;return{lat:a[0]+(b[0]-a[0])*u,lng:a[1]+(b[1]-a[1])*u}}
-function repUpd(){R.mk.setPosition(repAt(R.f));$('#rseek').value=Math.round(R.f*1000)}
+function repUpd(){const q=repAt(R.f);R.mk.setPosition(q);R.ring.setPosition(q);$('#rseek').value=Math.round(R.f*1000)}
 function repStep(ts){if(!R||!R.play)return;const dt=R.last?Math.min(100,ts-R.last):0;R.last=ts;R.f=Math.min(1,R.f+dt*R.sp/R.dur);repUpd();if(R.f>=1){R.play=false;$('#rplay').textContent='▶'}else R.raf=requestAnimationFrame(repStep)}
 function startReplay(t,idx){
   const M=maps.mapC;if(!M||!gOK)return;
@@ -165,10 +168,11 @@ function startReplay(t,idx){
   const cum=[0];for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+hv(pts[i-1],pts[i]));
   const g=google.maps,path=pts.map(p=>({lat:p[0],lng:p[1]}));
   const line=new g.Polyline({map:M.m,path,strokeColor:'#7c3aed',strokeWeight:7,strokeOpacity:.9,zIndex:50});
-  const mk=new g.Marker({map:M.m,position:path[0],zIndex:120,title:'Replay',label:{text:'🚚',fontSize:'14px'},icon:{path:g.SymbolPath.CIRCLE,scale:15,fillColor:'#7c3aed',fillOpacity:1,strokeColor:'#fff',strokeWeight:3}});
+  const ring=new g.Marker({map:M.m,position:path[0],zIndex:119,clickable:false,icon:{path:g.SymbolPath.CIRCLE,scale:26,fillColor:'#7c3aed',fillOpacity:.3,strokeColor:'#7c3aed',strokeWeight:3}});
+  const mk=new g.Marker({map:M.m,position:path[0],zIndex:120,title:'Replay',icon:truckIcon()});
   const b=new g.LatLngBounds();path.forEach(x=>b.extend(x));M.m.fitBounds(b,50);
   const tot=Math.max(1,cum[cum.length-1]);
-  R={pts,cum,tot,f:0,play:true,sp:+$('#rsp').value,last:0,dur:Math.max(6,Math.min(30,tot/8000))*1000,ov:[line,mk],mk,raf:0};
+  R={pts,cum,tot,f:0,play:true,sp:+$('#rsp').value,last:0,dur:Math.max(6,Math.min(30,tot/8000))*1000,ov:[line,ring,mk],mk,ring,raf:0};
   $('#rlab').textContent='Replay: '+label;$('#rtm').textContent=tm;$('#rbar').classList.remove('hide');$('#rplay').textContent='⏸';
   repUpd();R.raf=requestAnimationFrame(repStep);
 }
