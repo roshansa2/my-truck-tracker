@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My truck tracker</title>
+<style>
+:root{--bg:#f6f8fb;--card:#fff;--ink:#14213d;--mut:#667085;--line:#e3e6ec;--acc:#f59e0b;--accink:#1b1300;--ok:#16a34a;--bad:#dc2626;--blue:#2563eb;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between;padding:14px 20px;background:var(--card);border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
+.logo i{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:var(--acc);font-style:normal}
+.tabs{display:flex;gap:4px;background:var(--bg);padding:4px;border-radius:10px}
+.tabs button{border:0;background:none;color:var(--mut);padding:7px 14px;border-radius:7px;font-weight:600;cursor:pointer}
+.tabs button.on{background:var(--acc);color:var(--accink)}
+main{max-width:1200px;margin:0 auto;padding:18px}
+.grid{display:grid;grid-template-columns:320px 1fr;gap:16px}
+.agrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
+.wide{grid-column:1/-1}
+h2{font-size:15px;margin:0 0 10px}h3{font-size:12px;margin:14px 0 6px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.trip{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;padding:9px 11px;margin-bottom:8px;cursor:pointer;font:inherit}
+.trip.on,.ti.on{border-color:var(--acc);box-shadow:0 0 0 2px #f59e0b44}
+.trip small,.mut{color:var(--mut)}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700;background:#16a34a22;color:var(--ok)}
+.pill.h{background:#f59e0b33;color:#b45309}
+.gmap{width:100%;height:430px;border-radius:10px;background:#e8edf3;margin-top:10px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:12px}
+.stat{background:var(--bg);border-radius:9px;padding:9px 11px}.stat span{display:block;font-size:12px;color:var(--mut)}.stat b{font-size:16px;word-break:break-word}
+.tl{list-style:none;margin:0;padding:0}.tl li{display:flex;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.dot{flex:none;width:12px;height:12px;border-radius:50%;margin-top:4px}
+a{color:var(--blue)}
+label{display:block;font-size:12px;color:var(--mut);margin:8px 0 3px}
+input,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;margin-bottom:6px}
+input[type=range]{padding:0;margin:0}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.wp{display:grid;grid-template-columns:90px 1fr 1fr 64px 34px;gap:6px;margin-bottom:6px}.wp *{margin:0}
+.btn{border:0;background:var(--acc);color:var(--accink);font-weight:700;padding:9px 14px;border-radius:8px;cursor:pointer;margin-top:6px;font:inherit;font-weight:700}
+.btn.g{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+.x{border:0;background:none;color:var(--bad);cursor:pointer;font-size:16px}
+.err{color:var(--bad);font-size:12px;min-height:16px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0}
+.ti{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px}
+.pick{cursor:pointer}
+.spd{display:flex;gap:10px;align-items:center;margin:8px 0}.spd b{min-width:72px}
+.leg{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px dashed var(--line);font-size:13px}
+details{margin-top:8px}summary{cursor:pointer;font-weight:600}
+.warn{background:#fef3c7;color:#92400e;padding:10px 18px;font-size:13px}
+.mini{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:3px 9px;cursor:pointer;font:inherit;font-size:12px;margin-top:4px}
+.rbar{background:#f3effe;border:1px solid #d8ccf8;border-radius:10px;padding:10px;margin-top:10px}
+.rctl{display:flex;gap:8px;align-items:center;margin-top:6px}.rctl input[type=range]{flex:1}
+.hide{display:none}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+@media(max-width:640px){
+ header{padding:10px 14px}.tabs{width:100%}.tabs button{flex:1}
+ main{padding:12px}.card{padding:12px}
+ input,select{font-size:16px}.row{grid-template-columns:1fr}
+ .wp{grid-template-columns:1fr 1fr}.btn{width:100%}
+ .stats{grid-template-columns:1fr 1fr}.stat b{font-size:14px}
+ .gmap{height:320px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><i>🚚</i> My truck tracker</div>
+  <div class="tabs"><button id="tabC" class="on">Client view</button><button id="tabA">Admin panel</button></div>
+</header>
+<div id="gmerr" class="warn hide"></div>
+<main>
+  <div id="vC" class="grid">
+    <div class="card"><h2>Trips</h2><div id="cList"></div></div>
+    <div class="card">
+      <div id="cHead"><span class="mut">Select a trip to track it live.</span></div>
+      <div id="mapC" class="gmap"></div>
+      <div id="rbar" class="rbar hide"><div id="rlab" style="font-weight:600"></div><div id="rtm" class="mut" style="font-size:12px"></div><div class="rctl"><button class="mini" id="rplay">⏸</button><input type="range" id="rseek" min="0" max="1000" value="0"><select id="rsp" style="width:auto;margin:0"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option></select><button class="mini" id="rclose">✕ Close</button></div></div>
+      <div class="stats" id="cStats"></div>
+      <h3>Points passed <button class="mini" id="rpAll">▶ Replay whole trip so far</button></h3><ul class="tl" id="cPass"></ul>
+    </div>
+  </div>
+
+  <div id="vA" class="hide">
+    <div id="login" class="card" style="max-width:380px;margin:30px auto">
+      <h2>Admin login</h2>
+      <input id="pw" type="password" placeholder="Admin password">
+      <button class="btn" id="loginBtn">Log in</button><div class="err" id="lerr"></div>
+    </div>
+    <div id="adm" class="agrid hide">
+      <div class="card">
+        <h2>1. Create truck</h2>
+        <input id="tName" placeholder="Truck name (Truck 01)">
+        <div class="row"><input id="tPlate" placeholder="Plate no."><input id="tDriver" placeholder="Driver"></div>
+        <button class="btn" id="addTruck">Add truck</button><div class="err" id="e1"></div>
+        <h3>Trucks</h3><div id="aTrucks"></div>
+      </div>
+      <div class="card">
+        <h2>2. Create trip</h2>
+        <label>Truck</label><select id="trTruck"></select>
+        <input id="trName" placeholder="Trip name (optional)">
+        <label>Start point</label><div class="row"><input id="sName" placeholder="Place name"><input id="sLL" placeholder="lat, lng"></div>
+        <label>End point</label><div class="row"><input id="eName" placeholder="Place name"><input id="eLL" placeholder="lat, lng"></div>
+        <label>Tolls &amp; stops in order (last box = halt time in minutes)</label><div id="wpBox"></div>
+        <button class="btn g" id="addWp" type="button">+ Add toll / stop</button>
+        <p class="mut" style="font-size:12px;margin:8px 0 0">Coordinates: right-click a spot on Google Maps, click the numbers to copy, paste as <b>lat, lng</b>.</p>
+        <button class="btn" id="addTrip">Create trip &amp; calculate route</button><div class="err" id="e2"></div>
+      </div>
+      <div class="card wide"><h2>Trips</h2><div id="aTrips"></div></div>
+      <div class="card wide"><h2>Live map (admin sees the full route)</h2><div id="mapA" class="gmap"></div></div>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ===== SETTINGS ===== */
+const CFG={MAPS_KEY:'YOUR_GOOGLE_MAPS_BROWSER_KEY',API:'/api'};
+/* ==================== */
+const $=s=>document.querySelector(s),qa=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const COL={start:'#16a34a',end:'#dc2626',toll:'#f59e0b',stop:'#2563eb'},LBL={start:'Start',end:'Destination',toll:'Toll',stop:'Stop'};
+const km=m=>(m/1000).toFixed(1),hm=s=>Math.floor(s/3600)+'h '+Math.round(s%3600/60)+'m';
+const ft=ms=>new Date(ms).toLocaleString([],{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+const dur=s=>{s=Math.round(s/60);return s<60?s+' min':Math.floor(s/60)+'h '+String(s%60).padStart(2,'0')+'m'};
+const gml=p=>'https://www.google.com/maps?q='+p.lat+','+p.lng;
+let tab='c',pass=sessionStorage.getItem('mtt')||'',C=null,A=null,sel={c:null,a:null},sig='',gOK=false,maps={};
+
+/* ---------- Google Maps ---------- */
+function gmErr(t){const e=$('#gmerr');e.textContent=t;e.classList.remove('hide')}
+window.gm_authFailure=()=>gmErr('Google Maps rejected the API key. Check the key, billing, enabled "Maps JavaScript API" and the allowed website (referrer).');
+window.__gm=()=>{gOK=true;renderC();renderA()};
+if(CFG.MAPS_KEY.startsWith('YOUR'))gmErr('Add your Google Maps browser key in index.html (CFG.MAPS_KEY) to show the map.');
+else{const s=document.createElement('script');s.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(CFG.MAPS_KEY)+'&callback=__gm&v=weekly';s.async=true;document.head.appendChild(s)}
+
+function draw(id,o){
+  if(!gOK||!document.getElementById(id).offsetWidth)return;
+  const M=maps[id]||(maps[id]={ov:[],key:null,m:new google.maps.Map(document.getElementById(id),{mapTypeControl:false,streetViewControl:false,center:{lat:21,lng:84},zoom:6})});
+  M.ov.forEach(x=>x.setMap(null));M.ov=[];
+  const P=a=>a.map(p=>({lat:p[0],lng:p[1]})),g=google.maps;
+  if(o.full)M.ov.push(new g.Polyline({map:M.m,path:P(o.full),strokeColor:'#94a3b8',strokeWeight:5,strokeOpacity:.85}));
+  M.ov.push(new g.Polyline({map:M.m,path:P(o.path),strokeColor:'#2563eb',strokeWeight:5}));
+  o.points.forEach(p=>M.ov.push(new g.Marker({map:M.m,position:{lat:+p.lat,lng:+p.lng},title:p.n+' ('+LBL[p.type]+')',icon:{path:g.SymbolPath.CIRCLE,scale:8,fillColor:COL[p.type],fillOpacity:1,strokeColor:'#fff',strokeWeight:2}})));
+  const pos={lat:o.pos[0],lng:o.pos[1]};
+  M.ov.push(new g.Marker({map:M.m,position:pos,zIndex:99,title:'Truck',label:{text:'🚚',fontSize:'14px'},icon:{path:g.SymbolPath.CIRCLE,scale:15,fillColor:'#f59e0b',fillOpacity:1,strokeColor:'#14213d',strokeWeight:3}}));
+  if(M.key!==o.key){
+    const b=new g.LatLngBounds();(o.full||o.path).forEach(p=>b.extend({lat:p[0],lng:p[1]}));b.extend(pos);
+    if(b.getNorthEast().equals(b.getSouthWest())){M.m.setCenter(pos);M.m.setZoom(12)}else M.m.fitBounds(b,40);
+    M.key=o.key;
+  }else if(o.follow&&M.m.getBounds()&&!M.m.getBounds().contains(pos))M.m.panTo(pos);
+}
+
+/* ---------- Client panel (only passed points are ever received) ---------- */
+async function pollC(){try{C=await(await fetch(CFG.API+'?t='+Date.now())).json();renderC()}catch(e){}}
+let R=null;
+const hv=(a,b)=>{const r=x=>x*Math.PI/180,h=Math.sin(r(b[0]-a[0])/2)**2+Math.cos(r(a[0]))*Math.cos(r(b[0]))*Math.sin(r(b[1]-a[1])/2)**2;return 12742000*Math.asin(Math.sqrt(h))};
+function closeReplay(refit){if(!R)return;cancelAnimationFrame(R.raf);R.ov.forEach(x=>x.setMap(null));R=null;$('#rbar').classList.add('hide');if(refit&&maps.mapC)maps.mapC.key=null}
+function repAt(f){const d=f*R.tot;let i=1;while(i<R.cum.length-1&&R.cum[i]<d)i++;const a=R.pts[i-1],b=R.pts[i],seg=R.cum[i]-R.cum[i-1],u=seg>0?Math.min(1,(d-R.cum[i-1])/seg):0;return{lat:a[0]+(b[0]-a[0])*u,lng:a[1]+(b[1]-a[1])*u}}
+function repUpd(){R.mk.setPosition(repAt(R.f));$('#rseek').value=Math.round(R.f*1000)}
+function repStep(ts){if(!R||!R.play)return;const dt=R.last?Math.min(100,ts-R.last):0;R.last=ts;R.f=Math.min(1,R.f+dt*R.sp/R.dur);repUpd();if(R.f>=1){R.play=false;$('#rplay').textContent='▶'}else R.raf=requestAnimationFrame(repStep)}
+function startReplay(t,idx){
+  const M=maps.mapC;if(!M||!gOK)return;
+  const P=t.passed;let pts,label,tm;
+  if(idx==null){pts=t.path;label='whole trip so far';tm='Started '+ft(t.start)}
+  else{const p=P[idx],q=P[idx-1];pts=t.path.slice(q.pi,p.pi+1);if(pts.length<2)pts=[[q.lat,q.lng],[p.lat,p.lng]];label=q.n+' → '+p.n;tm='Departed '+ft(q.dp||q.at)+' · Arrived '+ft(p.at)}
+  closeReplay();
+  const cum=[0];for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+hv(pts[i-1],pts[i]));
+  const g=google.maps,path=pts.map(p=>({lat:p[0],lng:p[1]}));
+  const line=new g.Polyline({map:M.m,path,strokeColor:'#7c3aed',strokeWeight:7,strokeOpacity:.9,zIndex:50});
+  const mk=new g.Marker({map:M.m,position:path[0],zIndex:120,title:'Replay',label:{text:'🚚',fontSize:'14px'},icon:{path:g.SymbolPath.CIRCLE,scale:15,fillColor:'#7c3aed',fillOpacity:1,strokeColor:'#fff',strokeWeight:3}});
+  const b=new g.LatLngBounds();path.forEach(x=>b.extend(x));M.m.fitBounds(b,50);
+  const tot=Math.max(1,cum[cum.length-1]);
+  R={pts,cum,tot,f:0,play:true,sp:+$('#rsp').value,last:0,dur:Math.max(6,Math.min(30,tot/8000))*1000,ov:[line,mk],mk,raf:0};
+  $('#rlab').textContent='Replay: '+label;$('#rtm').textContent=tm;$('#rbar').classList.remove('hide');$('#rplay').textContent='⏸';
+  repUpd();R.raf=requestAnimationFrame(repStep);
+}
+$('#rplay').onclick=()=>{if(!R)return;if(R.play){R.play=false;$('#rplay').textContent='▶'}else{if(R.f>=1)R.f=0;R.play=true;R.last=0;$('#rplay').textContent='⏸';R.raf=requestAnimationFrame(repStep)}};
+$('#rseek').oninput=e=>{if(R){R.f=+e.target.value/1000;repUpd()}};
+$('#rsp').onchange=e=>{if(R)R.sp=+e.target.value};
+$('#rclose').onclick=()=>{closeReplay(true);renderC()};
+const curT=()=>((C&&C.trips)||[]).find(x=>x.id===sel.c);
+$('#cPass').onclick=e=>{const b=e.target.closest('[data-rp]'),t=curT();if(b&&t)startReplay(t,+b.dataset.rp)};
+$('#rpAll').onclick=()=>{const t=curT();if(t)startReplay(t,null)};
+function renderC(){
+  const T=(C&&C.trips)||[];
+  $('#cList').innerHTML=T.map(t=>`<button class="trip ${t.id===sel.c?'on':''}" data-id="${t.id}"><b>${esc(t.name)}</b><small>${esc(t.truck.name)} · ${esc(t.truck.plate)}</small><br><span class="pill ${t.status==='Moving'?'':'h'}">● ${esc(t.status)}</span></button>`).join('')||'<p class="mut">No trips yet.</p>';
+  qa('#cList .trip').forEach(b=>b.onclick=()=>{closeReplay();sel.c=b.dataset.id;renderC()});
+  const t=T.find(x=>x.id===sel.c)||T[0];
+  $('#rpAll').classList.toggle('hide',!t);
+  if(!t){$('#cHead').innerHTML='<span class="mut">No active trips.</span>';$('#cStats').innerHTML=$('#cPass').innerHTML='';return}
+  sel.c=t.id;const last=t.passed[t.passed.length-1],halt=t.passed.reduce((s,p)=>s+p.hs,0);
+  $('#cHead').innerHTML=`<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><div><h2 style="margin:0">${esc(t.name)}</h2><span class="mut">${esc(t.truck.name)} · ${esc(t.truck.plate)} · Driver ${esc(t.truck.driver)}</span></div><span class="pill ${t.status==='Moving'?'':'h'}">● ${esc(t.status)}</span></div>`+(C.tl!==1?`<div class="mut" style="font-size:12px;margin-top:6px">Demo mode: time runs ${C.tl}× faster than real time.</div>`:'');
+  $('#cStats').innerHTML=[['Speed',t.speed+' km/h'],['Started',ft(t.start)],['Distance covered',t.covered+' km'],['Elapsed',dur(t.elapsed)],['Total halted',dur(halt)],...(t.end?[['Completed',ft(t.end)]]:[]),['Last point passed',esc(last?last.n:'—')],['GPS',t.pos[0].toFixed(5)+', '+t.pos[1].toFixed(5)]].map(([a,b])=>`<div class="stat"><span>${a}</span><b>${b}</b></div>`).join('');
+  $('#cPass').innerHTML=t.passed.map((p,k)=>`<li><span class="dot" style="background:${COL[p.type]}"></span><div><b>${esc(p.n)}</b> <small class="mut">· ${LBL[p.type]}${k?' · '+p.km+' km from start':''}</small><br><small class="mut">${k===0?'Started '+ft(p.at):p.type==='end'?'Arrived '+ft(p.at):'Arrived '+ft(p.at)+(p.dp?' · Departed '+ft(p.dp):' · Halted now')+(p.hs?' · Halted '+dur(p.hs):'')}</small><br><a href="${gml(p)}" target="_blank" rel="noopener">${(+p.lat).toFixed(5)}, ${(+p.lng).toFixed(5)}</a>${k?` <button class="mini" data-rp="${k}">▶ Replay leg</button>`:''}</div></li>`).reverse().join('');
+  if(!R)draw('mapC',{key:t.id,follow:1,path:t.path,points:t.passed,pos:t.pos});
+}
+
+/* ---------- Admin panel ---------- */
+async function api(body){
+  const r=await fetch(CFG.API,{method:'POST',headers:{'Content-Type':'application/json','X-Admin-Pass':pass},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({error:'Server error: /api did not return data. Check that the api folder (api/index.js) was deployed, then look at Vercel > Deployments > Logs.'}));
+  if(!r.ok)throw new Error(j.error||'Request failed');return j;
+}
+async function act(body,errEl){try{A=await api(body);sig='';renderA();return true}catch(e){if(errEl)errEl.textContent=e.message;else alert(e.message);return false}}
+function showAdmin(ok){$('#login').classList.toggle('hide',ok);$('#adm').classList.toggle('hide',!ok)}
+async function pollA(){
+  if(tab!=='a'||!pass)return;
+  try{A=await api({action:'list'});showAdmin(true);renderA()}catch(e){showAdmin(false);$('#lerr').textContent=e.message;if(/Wrong admin password/.test(e.message)){pass='';sessionStorage.removeItem('mtt')}}
+}
+function ll(v){const m=String(v).trim().match(/^(-?\d+(?:\.\d+)?)[\s,]+(-?\d+(?:\.\d+)?)$/);if(!m)return null;const a=+m[1],b=+m[2];return Math.abs(a)<=90&&Math.abs(b)<=180?{lat:a,lng:b}:null}
+const tmStr=(t,i)=>{const a=t.live.arr[i],d=t.live.dep[i],T0=t.start*1000,last=i===t.points.length-1;if(a==null)return '';return i===0?' · started '+ft(T0):' · arr '+ft(T0+a*1000)+(last?'':d!=null?' · dep '+ft(T0+d*1000):' · halted now')};
+const tripHTML=t=>{const tr=A.trucks.find(x=>x.id===t.truckId)||{},n=t.points.length;return `<div class="ti ${t.id===sel.a?'on':''}" data-id="${t.id}">
+<div class="item"><span class="pick"><b>${esc(t.name)}</b><br><small class="mut">${esc(tr.name||'?')} · ${n-2} tolls/stops · tap to show on map</small></span><button class="x" data-del="${t.id}" title="Delete trip">✕</button></div>
+<small id="lv-${t.id}" class="mut"></small>
+<div class="spd"><small class="mut">Speed</small><input type="range" min="0" max="120" step="5" value="${t.speed}" data-s="${t.id}"><b>${t.speed} km/h</b></div>
+<button class="btn g" data-re="${t.id}">Restart trip</button>
+<details><summary>Schedule &amp; halt times · ${t.km} km · ${hm(t.secs)} driving</summary>
+<p class="mut" style="font-size:12px;margin:6px 0">Started ${ft(t.start*1000)}. The box is how many minutes the truck halts at that toll/stop.</p>
+${t.points.map((p,i)=>`<div class="leg"><span><b>${esc(p.n)}</b> <small class="mut">${LBL[p.type]}<span id="tm-${t.id}-${i}"></span></small></span>${i>0&&i<n-1?`<span style="white-space:nowrap"><input type="number" min="0" max="600" value="${p.dwell||0}" data-dwk="${i}" data-dwid="${t.id}" style="width:64px;margin:0"> min</span>`:''}</div>${t.legs[i]?`<div class="leg"><small class="mut">↓ ${km(t.legs[i].m)} km · ${hm(t.legs[i].s)} driving</small></div>`:''}`).join('')}</details>
+<details><summary>Add toll / stop to this trip</summary>
+<select data-ty><option value="toll">Toll</option><option value="stop">Stop</option></select>
+<input data-n placeholder="Name"><input data-ll placeholder="lat, lng">
+<input data-dw type="number" min="0" max="600" value="10" placeholder="Halt time (minutes)">
+<select data-af>${t.points.slice(0,-1).map((p,i,a)=>`<option value="${i}" ${i===a.length-1?'selected':''}>Insert after: ${esc(p.n)}</option>`).join('')}</select>
+<button class="btn" data-add="${t.id}">Add &amp; recalculate route</button><div class="err"></div></details></div>`};
+function renderA(){
+  if(!A||tab!=='a'||$('#adm').classList.contains('hide'))return;
+  const s=JSON.stringify([A.trucks,A.trips.map(t=>[t.id,t.speed,t.points.length,t.name,t.secs,t.start,t.points.map(p=>p.dwell||0)]),sel.a]);
+  if(s!==sig){
+    sig=s;
+    $('#aTrucks').innerHTML=A.trucks.map(t=>`<div class="item"><span>${esc(t.name)} <small class="mut">${esc(t.plate)} · ${esc(t.driver)}</small></span><button class="x" data-dt="${t.id}" title="Delete truck">✕</button></div>`).join('')||'<small class="mut">None</small>';
+    const sl=$('#trTruck'),cur=sl.value;sl.innerHTML=A.trucks.map(t=>`<option value="${t.id}">${esc(t.name)} (${esc(t.plate)})</option>`).join('');if(cur)sl.value=cur;
+    $('#aTrips').innerHTML=A.trips.map(tripHTML).join('')||'<small class="mut">No trips yet.</small>';
+  }
+  A.trips.forEach(t=>{const e=document.getElementById('lv-'+t.id);if(e)e.textContent=t.live.status+' · '+km(t.live.d)+' of '+km(t.total)+' km';t.points.forEach((p,i)=>{const m=document.getElementById('tm-'+t.id+'-'+i);if(m)m.textContent=tmStr(t,i)})});
+  const t=A.trips.find(x=>x.id===sel.a)||A.trips[0];
+  if(t)draw('mapA',{key:t.id,full:t.path,path:t.path.slice(0,t.live.i+1).concat([t.live.pos]),points:t.points,pos:t.live.pos});
+}
+$('#aTrucks').onclick=e=>{const b=e.target.closest('[data-dt]');if(b&&confirm('Delete this truck and its trips?'))act({action:'delTruck',id:b.dataset.dt})};
+$('#aTrips').onclick=async e=>{
+  const ti=e.target.closest('.ti');if(!ti)return;const id=ti.dataset.id;
+  if(e.target.closest('.pick')){sel.a=id;renderA();return}
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.del&&confirm('Delete this trip?'))act({action:'delTrip',id});
+  if(b.dataset.re)act({action:'restart',id});
+  if(b.dataset.add){
+    const t=A.trips.find(x=>x.id===id),er=ti.querySelector('.err'),c=ll(ti.querySelector('[data-ll]').value);er.textContent='';
+    if(!c){er.textContent='Enter coordinates like 20.4625, 85.8830';return}
+    const pts=t.points.map(({type,n,lat,lng,dwell})=>({type,n,lat,lng,dwell}));
+    pts.splice(+ti.querySelector('[data-af]').value+1,0,{type:ti.querySelector('[data-ty]').value,n:ti.querySelector('[data-n]').value.trim(),dwell:+ti.querySelector('[data-dw]').value||0,...c});
+    b.textContent='Calculating route…';await act({action:'trip',id,points:pts},er);b.textContent='Add & recalculate route';
+  }
+};
+$('#aTrips').oninput=e=>{if(e.target.dataset.s)e.target.nextElementSibling.textContent=e.target.value+' km/h'};
+$('#aTrips').onchange=e=>{const x=e.target.dataset;if(x.s)act({action:'speed',id:x.s,speed:+e.target.value});if(x.dwk)act({action:'dwell',id:x.dwid,k:+x.dwk,min:+e.target.value})};
+function wpRow(){const d=document.createElement('div');d.className='wp';d.innerHTML='<select><option value="toll">Toll</option><option value="stop">Stop</option></select><input placeholder="Name"><input placeholder="lat, lng"><input type="number" min="0" max="600" value="10" title="Halt time (minutes)"><button class="x" type="button">✕</button>';d.querySelector('button').onclick=()=>d.remove();$('#wpBox').appendChild(d)}
+$('#addWp').onclick=wpRow;
+$('#addTruck').onclick=async()=>{const e=$('#e1');e.textContent='';if(await act({action:'truck',name:$('#tName').value,plate:$('#tPlate').value,driver:$('#tDriver').value},e))['#tName','#tPlate','#tDriver'].forEach(i=>$(i).value='')};
+$('#addTrip').onclick=async()=>{
+  const e=$('#e2');e.textContent='';const s=ll($('#sLL').value),en=ll($('#eLL').value);
+  if(!$('#trTruck').value)return e.textContent='Create a truck first.';
+  if(!s||!en)return e.textContent='Start and end need valid coordinates like 21.4669, 83.9812.';
+  const pts=[{type:'start',n:$('#sName').value.trim(),...s}];
+  for(const r of $('#wpBox').children){const c=ll(r.children[2].value);if(!r.children[1].value.trim()&&!r.children[2].value.trim())continue;if(!c)return e.textContent='Fix the coordinates of "'+(r.children[1].value||'toll/stop')+'".';pts.push({type:r.children[0].value,n:r.children[1].value.trim(),dwell:+r.children[3].value||0,...c})}
+  pts.push({type:'end',n:$('#eName').value.trim(),...en});
+  const b=$('#addTrip');b.textContent='Calculating route…';
+  if(await act({action:'trip',truckId:$('#trTruck').value,name:$('#trName').value,points:pts},e)){['#trName','#sName','#sLL','#eName','#eLL'].forEach(i=>$(i).value='');$('#wpBox').innerHTML=''}
+  b.textContent='Create trip & calculate route';
+};
+$('#loginBtn').onclick=()=>{pass=$('#pw').value.trim();$('#lerr').textContent='';sessionStorage.setItem('mtt',pass);pollA()};
+$('#pw').onkeydown=e=>{if(e.key==='Enter')$('#loginBtn').click()};
+
+/* ---------- tabs & polling ---------- */
+function setTab(t){tab=t;$('#vC').classList.toggle('hide',t!=='c');$('#vA').classList.toggle('hide',t!=='a');$('#tabC').classList.toggle('on',t==='c');$('#tabA').classList.toggle('on',t==='a');if(t==='a'){if(maps.mapA)maps.mapA.key=null;sig='';pollA()}}
+$('#tabC').onclick=()=>setTab('c');$('#tabA').onclick=()=>setTab('a');
+wpRow();pollC();setInterval(()=>{pollC();pollA()},3000);
+</script>
+</body>
+</html>
